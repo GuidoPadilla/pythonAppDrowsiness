@@ -19,7 +19,8 @@ eye_detector = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 def predict():
     # Ensure that the request contains an image file
     if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'})
+        # Return 400 Bad Request
+        return jsonify({'error': 'No image provided'}), 400
 
     try:
         image_file = request.files['image']
@@ -84,23 +85,18 @@ def predict():
 
             # Make predictions
             predictions = model.predict(img_array)
-            #predicted_class = np.argmax(predictions[0])
 
-            # Map class index to label
-            print("LOGRO", predictions[0][0])
             if predictions[0][0] >= 0.5:
-                print("LOGRO", "Closed")
-                return jsonify({'prediction': "Closed"})
+                return jsonify({'prediction': "Closed"}), 200  # Return 200 OK
             else:
-                print("LOGRO", "Open")
-                return jsonify({'prediction': "Open"})
+                return jsonify({'prediction': "Open"}), 200  # Return 200 OK
         else:
-            print("NO OJOS")
-            return jsonify({"prediction": 'Eyes not detected'})
+            # Return 400 Bad Request
+            return jsonify({"error": 'Eyes not detected'}), 400
 
     except Exception as e:
-        print("EXPLOTO", e)
-        return jsonify({"prediction": 'UNEXPECTED ERROR FROM CLASSIFIER' + str(e)})
+        # Return 400 Bad Request
+        return jsonify({"error": 'UNEXPECTED ERROR FROM CLASSIFIER' + str(e)}), 400
 
 
 if __name__ == '__main__':
