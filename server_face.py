@@ -20,7 +20,7 @@ def predict():
     # Ensure that the request contains an image file
     if 'image' not in request.files:
         # Return 400 Bad Request
-        return jsonify({'error': 'No image provided'}), 400
+        return jsonify({'message': 'No image provided'}), 400
 
     try:
         image_file = request.files['image']
@@ -87,16 +87,16 @@ def predict():
             predictions = model.predict(img_array)
 
             if predictions[0][0] >= 0.5:
-                return jsonify({'prediction': "Closed"}), 200  # Return 200 OK
+                return jsonify({'message': "closed"}), 200  # Return 200 OK
             else:
-                return jsonify({'prediction': "Open"}), 200  # Return 200 OK
+                return jsonify({'message': "opened"}), 200  # Return 200 OK
         else:
             # Return 400 Bad Request
-            return jsonify({"error": 'Eyes not detected'}), 400
+            return jsonify({"message": 'not_recognized'}), 400
 
     except Exception as e:
         # Return 400 Bad Request
-        return jsonify({"error": 'UNEXPECTED ERROR FROM CLASSIFIER' + str(e)}), 400
+        return jsonify({"message": 'UNEXPECTED ERROR FROM CLASSIFIER' + str(e)}), 400
 
 
 if __name__ == '__main__':
