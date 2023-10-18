@@ -18,7 +18,7 @@ class MyApp(App):
 
         # Run the Flask app as a separate process
         # Replace with your Flask app filename
-        flask_process = subprocess.Popen([sys.executable, 'server.py'])
+        flask_process = subprocess.Popen([sys.executable, 'server_face.py'])
 
         # Wait for the Flask process to finish
         flask_process.wait()

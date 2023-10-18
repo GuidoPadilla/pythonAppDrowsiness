@@ -7,6 +7,8 @@ import numpy as np
 
 app = Flask(__name__)
 
+list_predictions = []
+
 # Load the trained model
 model = tf.keras.models.load_model('final_alternativo.h5')
 
@@ -17,6 +19,7 @@ eye_detector = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    global list_predictions
     # Ensure that the request contains an image file
     if 'image' not in request.files:
         # Return 400 Bad Request
@@ -36,7 +39,7 @@ def predict():
 
         # Initialize eyes_roi
         eyes_roi = None
-
+        print("FACES", len(faces))
         for face in faces:
             # Get face landmarks
             landmarks = eye_detector(gray, face)
@@ -74,7 +77,7 @@ def predict():
 
             # Combine both eyes
             # Duplicate the grayscale channel
-            eyes_roi = np.dstack((left_eye, right_eye, right_eye))
+            eyes_roi = np.dstack((left_eye, left_eye, left_eye))
             cv2.imwrite('eyes_of_gray.png', eyes_roi)
 
             break  # Break after detecting eyes in the first face
@@ -85,17 +88,39 @@ def predict():
 
             # Make predictions
             predictions = model.predict(img_array)
-
+            print(predictions[0])
             if predictions[0][0] >= 0.5:
-                return jsonify({'message': "closed"}), 200  # Return 200 OK
+                print("CLOSED")
+                list_predictions.append("closed")
+                # return jsonify({'message': "closed"}), 200  # Return 200 OK
             else:
-                return jsonify({'message': "opened"}), 200  # Return 200 OK
+                print("OPEN")
+                list_predictions.append("opened")
+                # return jsonify({'message': "opened"}), 200  # Return 200 OK
+
+            if len(list_predictions) == 5:
+                cont = 0
+                for item in list_predictions:
+                    if item == "closed":
+                        cont += 1
+                print("LIST", list_predictions)
+                perclos = (cont / 5) * 100
+                list_predictions = []
+                if perclos >= 60:
+                    print(perclos, "closed", list_predictions)
+                    return jsonify({'message': "closed"}), 200
+                else:
+                    print(perclos, "opened", list_predictions)
+                    return jsonify({'message': "opened"}), 200
+            else:
+                return jsonify({"message": "NA"}), 200
         else:
             # Return 400 Bad Request
             return jsonify({"message": 'not_recognized'}), 400
 
     except Exception as e:
         # Return 400 Bad Request
+        print("ERROR", str(e))
         return jsonify({"message": 'UNEXPECTED ERROR FROM CLASSIFIER' + str(e)}), 400
 
 
